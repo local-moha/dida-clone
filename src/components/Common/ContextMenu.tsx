@@ -5,9 +5,11 @@ interface ContextMenuProps {
     y: number;
     onClose: () => void;
     children: React.ReactNode;
+    /** 允许内容溢出（用于级联子菜单），默认裁切以保持圆角 */
+    overflowVisible?: boolean;
 }
 
-export default function ContextMenu({ x, y, onClose, children }: ContextMenuProps) {
+export default function ContextMenu({ x, y, onClose, children, overflowVisible }: ContextMenuProps) {
     const menuRef = useRef<HTMLDivElement>(null);
     const [pos, setPos] = React.useState({ left: x, top: y });
 
@@ -18,13 +20,21 @@ export default function ContextMenu({ x, y, onClose, children }: ContextMenuProp
             }
         };
 
+        // 滚动页面时关闭菜单，但菜单内部（如子菜单列表）滚动不应关闭
+        const handleScroll = (event: Event) => {
+            if (menuRef.current && event.target instanceof Node && menuRef.current.contains(event.target)) {
+                return;
+            }
+            onClose();
+        };
+
         // 监听滚动和点击，关闭菜单
         document.addEventListener('mousedown', handleClickOutside);
-        window.addEventListener('scroll', onClose, { capture: true });
+        window.addEventListener('scroll', handleScroll, { capture: true });
 
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
-            window.removeEventListener('scroll', onClose, { capture: true });
+            window.removeEventListener('scroll', handleScroll, { capture: true });
         };
     }, [onClose]);
 
@@ -56,7 +66,7 @@ export default function ContextMenu({ x, y, onClose, children }: ContextMenuProp
     return (
         <div
             ref={menuRef}
-            className="fixed z-[9999] bg-white border border-[var(--dida-border-light)] rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] overflow-hidden min-w-[160px]"
+            className={`fixed z-[9999] bg-[var(--dida-elevated)] border border-[var(--dida-border-light)] rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] min-w-[160px] ${overflowVisible ? 'overflow-visible' : 'overflow-hidden'}`}
             style={{ left: pos.left, top: pos.top }}
             onContextMenu={(e) => e.preventDefault()}
         >

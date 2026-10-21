@@ -4,7 +4,7 @@
 
 ### 方式 1：开发模式（推荐用于开发）
 ```bash
-cd /Users/akm/JieYueAI/dida-clone
+cd dida-clone
 npm run tauri dev
 ```
 
@@ -16,7 +16,7 @@ npm run tauri dev
 
 ### 方式 2：构建生产版本
 ```bash
-cd /Users/akm/JieYueAI/dida-clone
+cd dida-clone
 npm run tauri build
 ```
 
@@ -57,7 +57,7 @@ source ~/.cargo/env
 
 **解决方案 2：清理并重新安装**
 ```bash
-cd /Users/akm/JieYueAI/dida-clone
+cd dida-clone
 rm -rf node_modules
 npm install
 cd src-tauri
@@ -77,7 +77,7 @@ npm install @tanstack/react-query zustand date-fns lucide-react
 ### 问题：数据库错误
 
 数据库文件位置：
-- macOS: `~/Library/Application Support/com.akm.dida-clone/dida.db`
+- macOS: `~/Library/Application Support/com.didaclone.app/dida.db`
 
 如果需要重置数据库，删除该文件后重启应用。
 
@@ -91,7 +91,7 @@ npm install @tanstack/react-query zustand date-fns lucide-react
 brew install sqlite
 
 # 打开数据库
-sqlite3 ~/Library/Application\ Support/com.akm.dida-clone/dida.db
+sqlite3 ~/Library/Application\ Support/com.didaclone.app/dida.db
 
 # 查看表
 .tables

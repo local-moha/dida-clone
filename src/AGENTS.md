@@ -15,8 +15,12 @@ React 19 SPA with Vite bundler, Tailwind CSS 4 styling, React Query data managem
 | Data fetching logic | `hooks/` (React Query) | `useTasks.ts` (7KB needs refactor) |
 | API calls | `services/` | Tauri `invoke()` wrappers |
 | UI state | `store/` | Zustand (UI only, not server data) |
+| Theme (light/dark/system) | `store/useThemeStore.ts` | Applied via `.dark` class on `<html>` |
+| Sort / filter prefs | `store/useViewStore.ts` | Zustand `persist` (localStorage `dida-view-prefs`) |
 | Type definitions | `types/` | Must mirror Rust models |
 | Date/priority helpers | `utils/` | Domain-specific utilities |
+| Sorting / filtering | `utils/taskFilters.ts` | Pure functions, no React |
+| Search matching | `utils/search.ts` | Haystack + highlight split |
 | Feature constants | `constants/` | Segmented by domain |
 
 ## CONVENTIONS

@@ -4,7 +4,7 @@ trigger: always_on
 
 name: Tauri跨平台开发助手
 description: 滴答清单克隆项目 (Tauri 2.0 + React 19) 专用助手。
-当需要阅读Skill.md时，请查阅/Users/akm/.cline/skills子目录中Skill.md全部内容，并基于Skill.md的指引查看其余文件，严格遵守其指引。
+当需要阅读Skill.md时，请查阅 `~/.cline/skills` 子目录中Skill.md全部内容，并基于Skill.md的指引查看其余文件，严格遵守其指引。
 
 ## 🚀 项目背景
 本项目是一个高性能的滴答清单克隆应用。
@@ -40,7 +40,7 @@ description: 滴答清单克隆项目 (Tauri 2.0 + React 19) 专用助手。
 ## 📍 技能引用
 参考技术指引：
 - **Cursor 本仓库 Skill**：`.cursor/skills/tauri2-react-rust/SKILL.md`（Tauri 2 + React + Rust 整合指引，优先查阅）
-- [/Users/akm/JieYueAI/tauri-skills-quick-reference.md](file:///Users/akm/JieYueAI/tauri-skills-quick-reference.md)
+- [tauri-skills-quick-reference.md](./tauri-skills-quick-reference.md)
 - `~/.cline/skills/` 下的 `tauri-architecture`, `rust-pro`, `typescript-pro` 等。
 - `bb-browser`（用于页面调研、交互回归、截图取证）
 

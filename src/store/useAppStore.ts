@@ -14,6 +14,8 @@ interface AppState {
   };
   activeReminderTask: Task | null;
   isSidebarCollapsed: boolean;
+  isSettingsOpen: boolean;
+  searchQuery: string;
   setSelectedListId: (id: string | null) => void;
   setSelectedTagId: (id: string | null) => void;
   setSelectedTaskId: (id: string | null) => void;
@@ -23,6 +25,8 @@ interface AppState {
   setActiveReminderTask: (task: Task | null) => void;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
+  setSettingsOpen: (open: boolean) => void;
+  setSearchQuery: (query: string) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -36,15 +40,19 @@ export const useAppStore = create<AppState>((set) => ({
   },
   activeReminderTask: null,
   isSidebarCollapsed: false,
+  isSettingsOpen: false,
+  searchQuery: '',
   setSelectedListId: (id) => set({ 
     selectedListId: id, 
     selectedTagId: null,
-    selectedTaskId: null // 切换清单时清空选中的任务
+    selectedTaskId: null, // 切换清单时清空选中的任务
+    viewMode: 'tasks',    // 选择清单时回到任务视图
   }),
   setSelectedTagId: (id) => set({ 
     selectedTagId: id, 
     selectedListId: null,
-    selectedTaskId: null // 切换标签时清空选中的任务
+    selectedTaskId: null, // 切换标签时清空选中的任务
+    viewMode: 'tasks',    // 选择标签时回到任务视图
   }),
   setSelectedTaskId: (id) => set({ selectedTaskId: id }),
   setViewMode: (mode) => set({ viewMode: mode }),
@@ -57,4 +65,6 @@ export const useAppStore = create<AppState>((set) => ({
   setActiveReminderTask: (task) => set({ activeReminderTask: task }),
   toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
   setSidebarCollapsed: (collapsed) => set({ isSidebarCollapsed: collapsed }),
+  setSettingsOpen: (isSettingsOpen) => set({ isSettingsOpen }),
+  setSearchQuery: (searchQuery) => set({ searchQuery }),
 }));

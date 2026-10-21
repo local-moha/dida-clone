@@ -6,12 +6,15 @@ import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Trash2 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { getPriorityClass, getPriorityColor, getPriorityBgColor } from '../../utils/priority';
+import { isImeComposing } from '../../utils/keyboard';
 
 interface SubtaskItemProps {
     subtask: Task;
+    /** 只读模式：仅展示，不可编辑 / 勾选 / 删除 / 拖拽 */
+    readOnly?: boolean;
 }
 
-export default function SubtaskItem({ subtask }: SubtaskItemProps) {
+export default function SubtaskItem({ subtask, readOnly = false }: SubtaskItemProps) {
     const toggleTask = useToggleTask();
     const updateTask = useUpdateTask();
     const deleteTask = useDeleteTask();
@@ -29,7 +32,7 @@ export default function SubtaskItem({ subtask }: SubtaskItemProps) {
         transform,
         transition,
         isDragging,
-    } = useSortable({ id: subtask.id });
+    } = useSortable({ id: subtask.id, disabled: readOnly });
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -62,13 +65,14 @@ export default function SubtaskItem({ subtask }: SubtaskItemProps) {
     }, [isEditing]);
 
     const handleStartEdit = () => {
-        if (subtask.completed || isDragging) return;
+        if (readOnly || subtask.completed || isDragging) return;
         originalTitleRef.current = subtask.title;
         setIsEditing(true);
     };
 
     const handleToggle = async (e: React.MouseEvent) => {
         e.stopPropagation();
+        if (readOnly) return;
         // 如果正在编辑，先保存或关闭编辑
         if (isEditing) {
             await handleSave();
@@ -114,6 +118,8 @@ export default function SubtaskItem({ subtask }: SubtaskItemProps) {
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
+            // 输入法组合输入中的回车用于确认候选词，不提交
+            if (isImeComposing(e)) return;
             handleSave();
         } else if (e.key === 'Escape') {
             setEditTitle(subtask.title);
@@ -130,21 +136,23 @@ export default function SubtaskItem({ subtask }: SubtaskItemProps) {
         <div
             ref={setNodeRef}
             style={style}
-            className={`group flex items-center gap-1 py-1 px-2 hover:bg-[var(--dida-bg-hover)] rounded-md transition-colors cursor-pointer ${isDragging ? 'opacity-50 shadow-md bg-white ring-1 ring-[rgba(var(--dida-primary-rgb),0.1)]' : ''
+            className={`group flex items-center gap-1 py-1 px-2 rounded-md transition-colors ${readOnly ? 'cursor-default' : 'hover:bg-[var(--dida-bg-hover)] cursor-pointer'} ${isDragging ? 'opacity-50 shadow-md bg-[var(--dida-elevated)] ring-1 ring-[rgba(var(--dida-primary-rgb),0.1)]' : ''
                 }`}
         >
             {/* 拖拽手柄 */}
-            <div
-                {...attributes}
-                {...listeners}
-                className="w-5 flex items-center justify-center opacity-0 group-hover:opacity-30 transition-opacity cursor-grab active:cursor-grabbing"
-            >
-                <GripVertical className="w-3.5 h-3.5 text-[var(--dida-text-tertiary)]" />
-            </div>
+            {!readOnly && (
+                <div
+                    {...attributes}
+                    {...listeners}
+                    className="w-5 flex items-center justify-center opacity-0 group-hover:opacity-30 transition-opacity cursor-grab active:cursor-grabbing"
+                >
+                    <GripVertical className="w-3.5 h-3.5 text-[var(--dida-text-tertiary)]" />
+                </div>
+            )}
 
             <div className="flex-shrink-0 flex items-center justify-center w-6">
                 <div
-                    onClick={handleToggle}
+                    onClick={readOnly ? undefined : handleToggle}
                     className={`dida-checkbox ${getPriorityClass(subtask.priority)} ${subtask.completed ? 'completed' : ''}`}
                     style={{
                         borderColor: !subtask.completed ? getPriorityColor(subtask.priority) : undefined,
@@ -155,7 +163,10 @@ export default function SubtaskItem({ subtask }: SubtaskItemProps) {
                 />
             </div>
 
-            <div className="flex-1 min-w-0 px-1" onClick={handleStartEdit}>
+            <div
+                className={`flex-1 min-w-0 px-1 ${readOnly ? 'cursor-default' : ''}`}
+                onClick={readOnly ? undefined : handleStartEdit}
+            >
                 {isEditing ? (
                     <input
                         ref={inputRef}
@@ -164,7 +175,7 @@ export default function SubtaskItem({ subtask }: SubtaskItemProps) {
                         onChange={(e) => handleTitleChange(e.target.value)}
                         onBlur={handleSave}
                         onKeyDown={handleKeyDown}
-                        className="w-full bg-white border border-[var(--dida-primary)] rounded-sm px-1 text-[13px] outline-none"
+                        className="w-full bg-[var(--dida-elevated)] border border-[var(--dida-primary)] rounded-sm px-1 text-[13px] outline-none"
                     />
                 ) : (
                     <span
@@ -177,13 +188,15 @@ export default function SubtaskItem({ subtask }: SubtaskItemProps) {
             </div>
 
             {/* 删除按钮 */}
-            <button
-                onClick={handleDelete}
-                className="w-6 h-6 flex items-center justify-center text-[var(--dida-text-tertiary)] hover:text-red-500 hover:bg-red-50 rounded transition-all opacity-0 group-hover:opacity-100"
-                title="删除子任务"
-            >
-                <Trash2 className="w-3.5 h-3.5" />
-            </button>
+            {!readOnly && (
+                <button
+                    onClick={handleDelete}
+                    className="w-6 h-6 flex items-center justify-center text-[var(--dida-text-tertiary)] hover:text-red-500 hover:bg-red-50 rounded transition-all opacity-0 group-hover:opacity-100"
+                    title="删除子任务"
+                >
+                    <Trash2 className="w-3.5 h-3.5" />
+                </button>
+            )}
         </div>
     );
 }

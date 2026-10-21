@@ -109,7 +109,7 @@ interface Task {
 - Always use prepared statements (no raw SQL injection)
 
 ### Database Location
-macOS: `~/Library/Application Support/com.akm.dida-clone/dida.db`
+macOS: `~/Library/Application Support/com.didaclone.app/dida.db`
 
 ### Tech Debt
 - `task_repo.rs` (14KB) - consider splitting by CRUD operation

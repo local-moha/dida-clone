@@ -42,7 +42,7 @@ export default function ReminderModal({ task, onClose, onSnooze, onComplete, onG
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
-      <div className="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[var(--dida-border-light)] w-[420px] pointer-events-auto overflow-visible animate-in fade-in zoom-in duration-200">
+      <div className="bg-[var(--dida-elevated)] rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[var(--dida-border-light)] w-[420px] pointer-events-auto overflow-visible animate-in fade-in zoom-in duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-2">
           <div className="text-[13px] font-medium text-[var(--dida-primary)]">
@@ -103,7 +103,7 @@ export default function ReminderModal({ task, onClose, onSnooze, onComplete, onG
             {showSnoozeMenu && (
               <div 
                 ref={snoozeMenuRef}
-                className="absolute bottom-full left-0 mb-2 w-full bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-[var(--dida-border-light)] py-1 z-[110] animate-in slide-in-from-bottom-2 fade-in duration-150"
+                className="absolute bottom-full left-0 mb-2 w-full bg-[var(--dida-elevated)] rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-[var(--dida-border-light)] py-1 z-[110] animate-in slide-in-from-bottom-2 fade-in duration-150"
               >
                 {SNOOZE_OPTIONS.map((option) => (
                   <button

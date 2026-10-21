@@ -1,30 +1,37 @@
 import { useState, useRef, useEffect } from 'react';
 import { Task, Priority, RepeatRule } from '../../types';
-import { useToggleTask, useUpdateTask, useDeleteTask, useUndoDeleteTask, useDeleteTaskPermanently, useCreateSubtaskSimple } from '../../hooks/useTasks';
+import { useToggleTask, useUpdateTask, useDeleteTask, useUndoDeleteTask, useDeleteTaskPermanently, useCreateSubtaskSimple, useCreateTask } from '../../hooks/useTasks';
 import { useTags } from '../../hooks/useTags';
 import { useAppStore } from '../../store/useAppStore';
 import { useAlertStore } from '../../store/useAlertStore';
 import { GripVertical, MoreHorizontal, RotateCcw, XCircle, Bell, RefreshCw } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useQueryClient } from '@tanstack/react-query';
 import TaskContextMenu from './TaskContextMenu';
 import DatePicker from '../Common/DatePicker';
 import { getPriorityClass, getPriorityBgColor, getPriorityColor } from '../../utils/priority';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import { formatTaskDate, formatTaskDateTime, isOverdue } from '../../utils/date';
+import { generateId } from '../../utils/id';
+import { copyToClipboard } from '../../utils/clipboard';
 
 interface TaskItemProps {
   task: Task;
   depth?: number;
+  /** 非自定义排序时禁用拖拽手柄 */
+  dragDisabled?: boolean;
 }
 
-export default function TaskItem({ task, depth = 0 }: TaskItemProps) {
+export default function TaskItem({ task, depth = 0, dragDisabled = false }: TaskItemProps) {
   const toggleTask = useToggleTask();
   const deleteTask = useDeleteTask();
   const undoDeleteTask = useUndoDeleteTask();
   const deleteTaskPermanently = useDeleteTaskPermanently();
   const updateTask = useUpdateTask();
   const createSubtask = useCreateSubtaskSimple();
+  const createTask = useCreateTask();
+  const queryClient = useQueryClient();
   const { data: allTags } = useTags();
   const { selectedTaskId, setSelectedTaskId, showToast, selectedListId } = useAppStore();
   const { showAlert } = useAlertStore();
@@ -55,7 +62,7 @@ export default function TaskItem({ task, depth = 0 }: TaskItemProps) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: task.id });
+  } = useSortable({ id: task.id, disabled: dragDisabled });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -66,15 +73,8 @@ export default function TaskItem({ task, depth = 0 }: TaskItemProps) {
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('TaskItem toggling task:', task.id, task.title);
     toggleTask.mutate(task.id);
   };
-
-  if (!task.title && task.title !== '') {
-    console.warn('TaskItem detected missing title:', task.id, task);
-  }
-
-  console.log('Rendering TaskItem:', task.id, task.title);
 
   const handleClick = () => {
     // 如果正在拖拽，不触发点击
@@ -152,6 +152,74 @@ export default function TaskItem({ task, depth = 0 }: TaskItemProps) {
     updateTask.mutate({ ...task, tags: tagIds });
   };
 
+  // 置顶：把排序值调到同级任务最小值之前
+  const handlePin = () => {
+    const cachedTasks = queryClient
+      .getQueriesData<Task[]>({ queryKey: ['tasks'] })
+      .flatMap(([, data]) => data ?? []);
+
+    const siblings = cachedTasks.filter(
+      (t) =>
+        !t.is_deleted &&
+        t.list_id === task.list_id &&
+        (t.parent_id ?? null) === (task.parent_id ?? null)
+    );
+
+    const minOrder = siblings.length > 0
+      ? Math.min(...siblings.map((t) => t.order ?? 0))
+      : 0;
+
+    updateTask.mutate({ ...task, order: minOrder - 10 });
+    showToast('已置顶');
+  };
+
+  // 移动到其他清单（子任务跟随父任务一起移动，避免出现孤儿任务）
+  const handleMoveToList = (listId: string) => {
+    if (listId === task.list_id) return;
+
+    const cached = [
+      ...queryClient.getQueriesData<Task[]>({ queryKey: ['tasks'] }).flatMap(([, data]) => data ?? []),
+      ...queryClient.getQueriesData<Task[]>({ queryKey: ['subtasks'] }).flatMap(([, data]) => data ?? []),
+    ];
+    const subtaskMap = new Map<string, Task>();
+    cached.forEach((t) => {
+      if (t.parent_id === task.id && !t.is_deleted) subtaskMap.set(t.id, t);
+    });
+
+    updateTask.mutate({ ...task, list_id: listId });
+    subtaskMap.forEach((subtask) => {
+      updateTask.mutate({ ...subtask, list_id: listId });
+    });
+
+    showToast('已移动任务');
+  };
+
+  // 创建副本
+  const handleDuplicate = () => {
+    const now = Math.floor(Date.now() / 1000);
+    createTask.mutate(
+      {
+        ...task,
+        id: generateId(),
+        completed: false,
+        completed_at: null,
+        is_deleted: false,
+        order: (task.order ?? 0) + 1,
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        onSuccess: () => showToast('已创建副本'),
+      }
+    );
+  };
+
+  // 复制任务链接
+  const handleCopyLink = async () => {
+    const ok = await copyToClipboard(`dida://task/${task.id}`);
+    showToast(ok ? '任务链接已复制' : '复制失败，请重试');
+  };
+
   const handleDateClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (dateTriggerRef.current) {
@@ -188,6 +256,16 @@ export default function TaskItem({ task, depth = 0 }: TaskItemProps) {
     }
   };
 
+  // 右键菜单中的"自定义日期"：在菜单位置弹出日期选择器
+  const handleOpenDatePicker = () => {
+    if (!menuPos) return;
+    setDatePickerPos({
+      top: Math.max(8, Math.min(menuPos.y, window.innerHeight - 520)),
+      left: Math.max(8, Math.min(menuPos.x, window.innerWidth - 300)),
+    });
+    setShowDatePicker(true);
+  };
+
   const handleDatePickerSelect = (timestamp: number | undefined, reminder?: string, repeat_rule?: RepeatRule | null) => {
     updateTask.mutate({
       ...task,
@@ -208,16 +286,18 @@ export default function TaskItem({ task, depth = 0 }: TaskItemProps) {
         }}
         onClick={handleClick}
         onContextMenu={handleContextMenu}
-        className={`group flex items-center gap-1 px-1 py-1.5 border-b border-gray-50 cursor-pointer transition-colors ${isSelected ? 'bg-[var(--dida-primary-light)]' : 'hover:bg-[var(--dida-bg-hover)]'
-          } ${isDragging ? 'opacity-50 shadow-lg bg-white ring-1 ring-[rgba(var(--dida-primary-rgb),0.2)] rounded-sm' : ''}`}
+        className={`group flex items-center gap-1 px-1 py-1.5 border-b border-[var(--dida-border-light)] cursor-pointer transition-colors ${isSelected ? 'bg-[var(--dida-primary-light)]' : 'hover:bg-[var(--dida-bg-hover)]'
+          } ${isDragging ? 'opacity-50 shadow-lg bg-[var(--dida-elevated)] ring-1 ring-[rgba(var(--dida-primary-rgb),0.2)] rounded-sm' : ''}`}
       >
         {/* 拖拽手柄 - 悬浮可见 */}
         <div
-          {...attributes}
-          {...listeners}
-          className="w-6 flex items-center justify-center opacity-0 group-hover:opacity-30 transition-opacity cursor-grab active:cursor-grabbing"
+          {...(dragDisabled ? {} : attributes)}
+          {...(dragDisabled ? {} : listeners)}
+          className={`w-6 flex items-center justify-center transition-opacity ${
+            dragDisabled ? 'opacity-0' : 'opacity-0 group-hover:opacity-30 cursor-grab active:cursor-grabbing'
+          }`}
         >
-          <GripVertical className="w-4 h-4 text-gray-600" />
+          <GripVertical className="w-4 h-4 text-[var(--dida-text-secondary)]" />
         </div>
 
         {/* 滴答清单风格 Checkbox */}
@@ -237,7 +317,7 @@ export default function TaskItem({ task, depth = 0 }: TaskItemProps) {
         {/* 任务内容 */}
         <div className="flex-1 min-w-0 px-1 select-none">
           <div
-            className={`text-[14px] leading-tight truncate ${task.completed ? 'text-gray-400' : 'text-gray-800'
+            className={`text-[14px] leading-tight truncate ${task.completed ? 'text-[var(--dida-text-tertiary)]' : 'text-[var(--dida-text-main)]'
               }`}
           >
             {task.title || '无标题任务'}
@@ -268,7 +348,7 @@ export default function TaskItem({ task, depth = 0 }: TaskItemProps) {
                 
                 {/* 悬浮显示的隐藏标签列表 */}
                 <div className="absolute top-full right-0 mt-2 hidden group-hover/tag:block z-[100] animate-in fade-in zoom-in-95 duration-150">
-                  <div className="bg-white border border-[var(--dida-border-light)] shadow-xl rounded-lg p-2 w-max max-w-[300px]">
+                  <div className="bg-[var(--dida-elevated)] border border-[var(--dida-border-light)] shadow-xl rounded-lg p-2 w-max max-w-[300px]">
                     <div className="flex flex-row flex-wrap gap-1.5">
                       {task.tags
                         .map(tagId => ({ tagId, tag: allTags?.find(t => t.id === tagId) }))
@@ -284,7 +364,7 @@ export default function TaskItem({ task, depth = 0 }: TaskItemProps) {
                         ))}
                     </div>
                     {/* 小三角箭头 */}
-                    <div className="absolute bottom-full right-4 w-2 h-2 bg-white border-l border-t border-[var(--dida-border-light)] rotate-45 translate-y-1" />
+                    <div className="absolute bottom-full right-4 w-2 h-2 bg-[var(--dida-elevated)] border-l border-t border-[var(--dida-border-light)] rotate-45 translate-y-1" />
                   </div>
                 </div>
               </div>
@@ -362,11 +442,16 @@ export default function TaskItem({ task, depth = 0 }: TaskItemProps) {
           onClose={() => setMenuPos(null)}
           onSetPriority={handleSetPriority}
           onSetDate={handleSetDate}
+          onOpenDatePicker={handleOpenDatePicker}
           onDelete={handleDelete}
           onRestore={handleRestore}
           onDeletePermanently={handleDeletePermanently}
           onAddSubtask={handleAddSubtask}
           onUpdateTags={handleUpdateTags}
+          onPin={handlePin}
+          onMoveToList={handleMoveToList}
+          onDuplicate={handleDuplicate}
+          onCopyLink={handleCopyLink}
         />
       )}
 
@@ -379,7 +464,7 @@ export default function TaskItem({ task, depth = 0 }: TaskItemProps) {
             bottom: datePickerPos.bottom !== undefined ? `${datePickerPos.bottom}px` : 'auto',
             left: datePickerPos.left !== undefined ? `${datePickerPos.left}px` : 'auto',
             right: datePickerPos.right !== undefined ? `${datePickerPos.right}px` : 'auto',
-            backgroundColor: '#ffffff',
+            backgroundColor: 'var(--dida-elevated)',
             borderRadius: '12px'
           }}
           onClick={(e) => e.stopPropagation()}

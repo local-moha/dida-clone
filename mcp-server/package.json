@@ -1,0 +1,17 @@
+{
+  "name": "dida-clone-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MCP server for dida-clone: read/write tasks, lists and tags in the local SQLite database",
+  "type": "module",
+  "bin": {
+    "dida-clone-mcp": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "zod": "^4.6.7"
+  }
+}

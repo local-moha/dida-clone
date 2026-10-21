@@ -61,7 +61,7 @@ export default function AlertDialog() {
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 backdrop-blur-[1px] animate-in fade-in duration-200">
       <div 
-        className="bg-white rounded-lg shadow-xl w-[400px] max-w-[90vw] overflow-hidden transform transition-all scale-100 animate-in zoom-in-95 duration-200 border border-[var(--dida-border-light)]"
+        className="bg-[var(--dida-elevated)] rounded-lg shadow-xl w-[400px] max-w-[90vw] overflow-hidden transform transition-all scale-100 animate-in zoom-in-95 duration-200 border border-[var(--dida-border-light)]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="alert-title"
@@ -87,7 +87,7 @@ export default function AlertDialog() {
           {isConfirmType && (
             <button
               onClick={handleCancel}
-              className="px-4 py-2 text-sm font-medium text-[var(--dida-text-main)] bg-white border border-[var(--dida-border-light)] rounded-md hover:bg-[var(--dida-bg-hover)] focus:outline-none transition-colors"
+              className="px-4 py-2 text-sm font-medium text-[var(--dida-text-main)] bg-[var(--dida-elevated)] border border-[var(--dida-border-light)] rounded-md hover:bg-[var(--dida-bg-hover)] focus:outline-none transition-colors"
             >
               {cancelLabel}
             </button>

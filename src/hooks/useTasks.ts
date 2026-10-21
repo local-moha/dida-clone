@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { taskService } from '../services';
 import { Task, RepeatRule } from '../types';
 
-export function useTasks(listId?: string, tagId?: string) {
+export function useTasks(listId?: string, tagId?: string, enabled = true) {
   return useQuery({
     queryKey: ['tasks', listId, tagId],
     queryFn: () => {
@@ -11,6 +11,7 @@ export function useTasks(listId?: string, tagId?: string) {
       }
       return taskService.getTasks(listId);
     },
+    enabled,
   });
 }
 

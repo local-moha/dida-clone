@@ -1,14 +1,18 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { useLists, useCreateList } from '../../hooks/useLists';
+import { useLists, useCreateList, useUpdateList, useDeleteList } from '../../hooks/useLists';
 import { useTags } from '../../hooks/useTags';
+import { useTasks, useDeleteTask } from '../../hooks/useTasks';
+import { getListTaskCount } from '../../utils/listCounts';
+import { getRandomListColor } from '../../constants/listStyles';
+import ListContextMenu from '../List/ListContextMenu';
 import { useAppStore } from '../../store/useAppStore';
 import { Plus, Hash, ChevronDown, ChevronRight, MoreHorizontal, Check } from 'lucide-react';
 import AddTagModal from '../Tag/AddTagModal';
 import TagContextMenu from '../Tag/TagContextMenu';
-import { Tag } from '../../types';
+import { List, Tag } from '../../types';
 import { useDeleteTag, useUpdateTag } from '../../hooks/useTags';
 import { useAlertStore } from '../../store/useAlertStore';
-import { SMART_LIST_CONFIG } from '../../constants/smartLists';
+import { SMART_LIST_CONFIG, SMART_LIST_IDS } from '../../constants/smartLists';
 import { useClickOutside } from '../../hooks/useClickOutside';
 
 interface TagNode extends Tag {
@@ -23,9 +27,14 @@ export default function Sidebar({ width = 240 }: SidebarProps) {
   const { data: lists, isLoading: isListsLoading } = useLists();
   const createList = useCreateList();
   const { data: tags, isLoading: isTagsLoading } = useTags();
+  const { data: allTasks } = useTasks();
+  const { data: trashTasks } = useTasks(SMART_LIST_IDS.TRASH);
   const { selectedListId, setSelectedListId, selectedTagId, setSelectedTagId } = useAppStore();
   const deleteTag = useDeleteTag();
   const updateTag = useUpdateTag();
+  const updateList = useUpdateList();
+  const deleteList = useDeleteList();
+  const deleteTask = useDeleteTask();
   const { showAlert } = useAlertStore();
 
   const [isAddTagModalOpen, setIsAddTagModalOpen] = useState(false);
@@ -39,6 +48,11 @@ export default function Sidebar({ width = 240 }: SidebarProps) {
   const [newListTitle, setNewListTitle] = useState('');
   const newListInputRef = useRef<HTMLInputElement>(null);
   const newListContainerRef = useRef<HTMLDivElement>(null);
+
+  // 清单重命名
+  const [editingListId, setEditingListId] = useState<string | null>(null);
+  const [editingListName, setEditingListName] = useState('');
+  const [listContextMenu, setListContextMenu] = useState<{ x: number; y: number; list: List } | null>(null);
 
   useClickOutside([newListContainerRef], () => {
     if (isAddingList) setIsAddingList(false);
@@ -60,7 +74,7 @@ export default function Sidebar({ width = 240 }: SidebarProps) {
       id: crypto.randomUUID(),
       name: newListTitle.trim(),
       icon: '📋',
-      color: 'var(--dida-primary)',
+      color: getRandomListColor(),
       is_smart: false,
       order: (lists?.length || 0),
       created_at: Math.floor(Date.now() / 1000),
@@ -69,6 +83,43 @@ export default function Sidebar({ width = 240 }: SidebarProps) {
         setIsAddingList(false);
         setNewListTitle('');
       }
+    });
+  };
+
+  const handleRenameSave = () => {
+    if (!editingListId) return;
+    const target = lists?.find((l) => l.id === editingListId);
+    const nextName = editingListName.trim();
+    if (target && nextName && nextName !== target.name) {
+      updateList.mutate({ ...target, name: nextName });
+    }
+    setEditingListId(null);
+  };
+
+  const handleListContextMenu = (e: React.MouseEvent, list: List) => {
+    e.preventDefault();
+    setListContextMenu({ x: e.clientX, y: e.clientY, list });
+  };
+
+  const handleDeleteList = (list: List) => {
+    const taskCount = (allTasks ?? []).filter((t) => t.list_id === list.id && !t.is_deleted).length;
+    showAlert({
+      title: '删除清单',
+      message: taskCount > 0
+        ? `删除清单后，其中的 ${taskCount} 个任务会移动到垃圾桶，可在垃圾桶中恢复。`
+        : '确定要删除这个清单吗？',
+      type: 'error',
+      confirmLabel: '删除',
+      onConfirm: async () => {
+        const tasksInList = (allTasks ?? []).filter((t) => t.list_id === list.id && !t.is_deleted);
+        for (const task of tasksInList) {
+          await deleteTask.mutateAsync(task.id);
+        }
+        await deleteList.mutateAsync(list.id);
+        if (selectedListId === list.id) {
+          setSelectedListId(SMART_LIST_IDS.INBOX);
+        }
+      },
     });
   };
 
@@ -121,7 +172,7 @@ export default function Sidebar({ width = 240 }: SidebarProps) {
     const Icon = config.icon;
     return (
       <Icon 
-        className={`w-4.5 h-4.5 shrink-0 ${isSelected ? 'text-[var(--dida-primary)]' : 'text-gray-500'}`}
+        className={`w-4.5 h-4.5 shrink-0 ${isSelected ? 'text-[var(--dida-primary)]' : 'text-[var(--dida-text-secondary)]'}`}
         strokeWidth={isSelected ? 2.5 : 2}
       />
     );
@@ -194,13 +245,10 @@ export default function Sidebar({ width = 240 }: SidebarProps) {
   const isLoading = isListsLoading || isTagsLoading;
   const isInitialLoading = isLoading && !lists && !tags;
 
-  const smartLists = useMemo(() => {
-    const filtered = (lists || []).filter((list) => list.is_smart);
-    console.log('Sidebar render - lists:', lists);
-    console.log('Sidebar render - smartLists count:', filtered.length);
-    console.log('Sidebar render - smartLists IDs:', filtered.map(l => l.id));
-    return filtered;
-  }, [lists]);
+  const smartLists = useMemo(
+    () => (lists || []).filter((list) => list.is_smart),
+    [lists]
+  );
 
   const customLists = useMemo(() => lists?.filter((list) => !list.is_smart) || [], [lists]);
   const pinnedTags = useMemo(() => tags?.filter((tag) => tag.is_pinned) || [], [tags]);
@@ -212,7 +260,7 @@ export default function Sidebar({ width = 240 }: SidebarProps) {
   if (isInitialLoading) {
     return (
       <aside 
-        className="bg-white border-r border-[var(--dida-border-light)] p-4 shrink-0"
+        className="bg-[var(--dida-elevated)] border-r border-[var(--dida-border-light)] p-4 shrink-0"
         style={{ width: `${width}px` }}
       >
         <div className="text-sm text-[var(--dida-text-secondary)]">加载中...</div>
@@ -235,12 +283,12 @@ export default function Sidebar({ width = 240 }: SidebarProps) {
                 onClick={() => setSelectedTagId(tag.id)}
                 onContextMenu={(e) => handleContextMenu(e, tag)}
                 className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all hover:bg-[var(--dida-bg-hover)] border border-transparent group ${
-                  selectedTagId === tag.id ? 'bg-white shadow-sm border-[var(--dida-border-light)]' : ''
+                  selectedTagId === tag.id ? 'bg-[var(--dida-elevated)] shadow-sm border-[var(--dida-border-light)]' : ''
                 }`}
                 title={tag.name}
               >
                 <div 
-                  className="w-8 h-8 rounded-lg flex items-center justify-center mb-1 transition-colors bg-white shadow-sm border border-[var(--dida-border-light)] group-hover:border-[var(--dida-border-light)]"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center mb-1 transition-colors bg-[var(--dida-elevated)] shadow-sm border border-[var(--dida-border-light)] group-hover:border-[var(--dida-border-light)]"
                 >
                   <Hash className="w-4 h-4" style={{ color: tag.color }} />
                 </div>
@@ -259,6 +307,7 @@ export default function Sidebar({ width = 240 }: SidebarProps) {
           )}
           {smartLists.map((list) => {
             const isSelected = selectedListId === list.id;
+            const count = getListTaskCount(list, allTasks ?? [], trashTasks ?? []);
             return (
               <button
                 key={list.id}
@@ -276,6 +325,11 @@ export default function Sidebar({ width = 240 }: SidebarProps) {
                     {list.name}
                   </span>
                 </div>
+                {count > 0 && (
+                  <span className={`text-[11px] tabular-nums ${isSelected ? 'text-[var(--dida-primary)]' : 'text-[var(--dida-text-tertiary)]'}`}>
+                    {count}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -309,7 +363,7 @@ export default function Sidebar({ width = 240 }: SidebarProps) {
                     if (e.key === 'Escape') setIsAddingList(false);
                   }}
                   placeholder="清单名称"
-                  className="flex-1 bg-white border border-[var(--dida-primary)] rounded px-2 py-1 text-sm outline-none"
+                  className="flex-1 bg-[var(--dida-elevated)] border border-[var(--dida-primary)] rounded px-2 py-1 text-sm outline-none"
                 />
                 <button 
                   onClick={handleCreateList}
@@ -319,23 +373,53 @@ export default function Sidebar({ width = 240 }: SidebarProps) {
                 </button>
               </div>
             )}
-            {customLists.map((list) => (
-              <button
-                key={list.id}
-                onClick={() => setSelectedListId(list.id)}
-                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-md transition-colors ${selectedListId === list.id
-                  ? 'bg-[var(--dida-primary-light)] text-[var(--dida-primary)]'
-                  : 'text-[var(--dida-text-main)] hover:bg-[var(--dida-bg-hover)]'
-                  }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-lg w-5 h-5 flex items-center justify-center">{list.icon}</span>
-                  <span className={`text-sm ${selectedListId === list.id ? 'font-semibold' : 'font-medium'}`}>
-                    {list.name}
-                  </span>
+            {customLists.map((list) => {
+              const isSelected = selectedListId === list.id;
+              const count = getListTaskCount(list, allTasks ?? [], trashTasks ?? []);
+              return (
+                <div key={list.id} className="relative">
+                  {editingListId === list.id ? (
+                    <div className="px-3 py-1.5 flex items-center gap-2">
+                      <span className="text-lg w-5 h-5 flex items-center justify-center">{list.icon}</span>
+                      <input
+                        autoFocus
+                        type="text"
+                        value={editingListName}
+                        onChange={(e) => setEditingListName(e.target.value)}
+                        onBlur={handleRenameSave}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleRenameSave();
+                          if (e.key === 'Escape') setEditingListId(null);
+                        }}
+                        placeholder="清单名称"
+                        className="flex-1 bg-[var(--dida-elevated)] text-[var(--dida-text-main)] border border-[var(--dida-primary)] rounded px-2 py-1 text-sm outline-none"
+                      />
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setSelectedListId(list.id)}
+                      onContextMenu={(e) => handleListContextMenu(e, list)}
+                      className={`w-full flex items-center justify-between px-3 py-1.5 rounded-md transition-colors group ${isSelected
+                        ? 'bg-[var(--dida-primary-light)] text-[var(--dida-primary)]'
+                        : 'text-[var(--dida-text-main)] hover:bg-[var(--dida-bg-hover)]'
+                        }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg w-5 h-5 flex items-center justify-center">{list.icon}</span>
+                        <span className={`text-sm ${isSelected ? 'font-semibold' : 'font-medium'}`}>
+                          {list.name}
+                        </span>
+                      </div>
+                      {count > 0 && (
+                        <span className={`text-[11px] tabular-nums ${isSelected ? 'text-[var(--dida-primary)]' : 'text-[var(--dida-text-tertiary)]'}`}>
+                          {count}
+                        </span>
+                      )}
+                    </button>
+                  )}
                 </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -399,6 +483,27 @@ export default function Sidebar({ width = 240 }: SidebarProps) {
         tagToEdit={tagToEdit}
         initialParentId={initialParentId}
       />
+
+      {listContextMenu && (
+        <ListContextMenu
+          x={listContextMenu.x}
+          y={listContextMenu.y}
+          currentIcon={listContextMenu.list.icon}
+          currentColor={listContextMenu.list.color}
+          onClose={() => setListContextMenu(null)}
+          onRename={() => {
+            setEditingListId(listContextMenu.list.id);
+            setEditingListName(listContextMenu.list.name);
+          }}
+          onDelete={() => handleDeleteList(listContextMenu.list)}
+          onPickIcon={(icon) =>
+            updateList.mutate({ ...listContextMenu.list, icon })
+          }
+          onPickColor={(color) =>
+            updateList.mutate({ ...listContextMenu.list, color })
+          }
+        />
+      )}
 
       {contextMenu && (
         <TagContextMenu

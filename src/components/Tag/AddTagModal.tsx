@@ -64,7 +64,7 @@ export default function AddTagModal({ isOpen, onClose, tagToEdit, initialParentI
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-[2px]">
-      <div className="w-[400px] bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="w-[400px] bg-[var(--dida-elevated)] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="px-6 py-4 flex items-center justify-between border-b border-[var(--dida-border-light)]">
           <h2 className="text-[17px] font-bold text-[var(--dida-text-main)]">{tagToEdit ? '编辑标签' : '添加标签'}</h2>
@@ -85,7 +85,7 @@ export default function AddTagModal({ isOpen, onClose, tagToEdit, initialParentI
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="名称"
-              className="w-full px-4 py-2.5 bg-white border border-[var(--dida-border-light)] focus:border-[var(--dida-primary)] rounded-xl outline-none transition-all placeholder:text-[var(--dida-text-tertiary)] text-[15px]"
+              className="w-full px-4 py-2.5 bg-[var(--dida-elevated)] border border-[var(--dida-border-light)] focus:border-[var(--dida-primary)] rounded-xl outline-none transition-all placeholder:text-[var(--dida-text-tertiary)] text-[15px]"
             />
           </div>
 
@@ -135,14 +135,14 @@ export default function AddTagModal({ isOpen, onClose, tagToEdit, initialParentI
               <button
                 type="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="w-full flex items-center justify-between px-4 py-2 bg-white border border-[var(--dida-border-light)] hover:border-[var(--dida-text-tertiary)] rounded-lg transition-colors text-[14px] text-[var(--dida-text-main)]"
+                className="w-full flex items-center justify-between px-4 py-2 bg-[var(--dida-elevated)] border border-[var(--dida-border-light)] hover:border-[var(--dida-text-tertiary)] rounded-lg transition-colors text-[14px] text-[var(--dida-text-main)]"
               >
                 <span>{parentId ? tags?.find(t => t.id === parentId)?.name : '无'}</span>
                 <ChevronDown className={`w-4 h-4 text-[var(--dida-text-tertiary)] transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {isDropdownOpen && (
-                <div className="absolute top-full left-0 w-full mt-1 bg-white border border-[var(--dida-border-light)] shadow-xl rounded-xl py-1 z-[110] max-h-48 overflow-y-auto">
+                <div className="absolute top-full left-0 w-full mt-1 bg-[var(--dida-elevated)] border border-[var(--dida-border-light)] shadow-xl rounded-xl py-1 z-[110] max-h-48 overflow-y-auto">
                   <button
                     type="button"
                     onClick={() => {

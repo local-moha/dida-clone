@@ -177,17 +177,26 @@ const browserTaskStore = {
 
   async getSubtasks(parentId: string): Promise<Task[]> {
     const tasks = loadBrowserTasks();
-    return tasks.filter(t => t.parent_id === parentId);
+    // 与 Rust 端 get_by_parent 保持一致：按 order 升序，order 相同时按创建时间升序
+    return tasks
+      .filter(t => t.parent_id === parentId && !t.is_deleted)
+      .sort((a, b) => (a.order - b.order) || (a.created_at - b.created_at));
   },
 
   async createSubtaskSimple(title: string, parentId: string, listId: string): Promise<Task> {
     const tasks = loadBrowserTasks();
     const parentTask = tasks.find(t => t.id === parentId);
+    // 追加到已有子任务末尾，避免新增后顺序跳变
+    const siblingOrders = tasks
+      .filter(t => t.parent_id === parentId && !t.is_deleted)
+      .map(t => t.order);
+    const nextOrder = siblingOrders.length ? Math.max(...siblingOrders) + 10 : 0;
     const finalTask = createBrowserTaskBase({
       title,
       list_id: listId,
       parent_id: parentId,
       due_date: parentTask?.due_date ?? null,
+      order: nextOrder,
     });
     tasks.push(finalTask);
     saveBrowserTasks(tasks);

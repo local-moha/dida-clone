@@ -10,6 +10,7 @@ import {
 import { Tag } from '../../types';
 import { useTags, useCreateTag } from '../../hooks/useTags';
 import { getRandomTagColor } from '../../constants/colors';
+import { isImeComposing } from '../../utils/keyboard';
 
 interface TagSelectorPopoverProps {
   selectedTagIds: string[];
@@ -191,7 +192,7 @@ export default function TagSelectorPopover({
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && showCreateOption) {
+                if (e.key === 'Enter' && !isImeComposing(e) && showCreateOption) {
                   handleCreateTag();
                 }
               }}

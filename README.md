@@ -36,17 +36,24 @@
 - ✅ 子任务支持（多级嵌套、递归展示）
 - ✅ 任务提醒（支持单次提醒设置）
 - ✅ 重复任务（支持按天、周、月、年等周期性设置）
-- ✅ 快捷键支持（全局与局部快捷键优化）
+- ✅ 快捷键支持（新建、搜索、设置、侧边栏、关闭详情）
 - ✅ 自定义清单与标签管理
 - ✅ 任务优先级与截止日期
 - ✅ 响应式三栏布局（侧边栏可折叠、面板宽度可拉伸）
+- ✅ **全局搜索**（⌘/Ctrl + F，支持标题、备注、清单、标签匹配与关键词高亮）
+- ✅ **排序与筛选**（自定义顺序 / 截止日期 / 优先级 / 标题 / 创建时间，支持优先级筛选与隐藏已完成）
+- ✅ **清单管理**（右键重命名、更换图标、更换颜色、删除清单，清单内任务自动移入垃圾桶）
+- ✅ **侧边栏任务计数**（各清单与「已完成 / 垃圾桶」实时数量）
+- ✅ **深色模式**（浅色 / 深色 / 跟随系统，设置面板随时切换）
+- ✅ **日历模块**（月 / 周 / 日 / 日程 / 多日 / 多周六种视图，支持快速选择年月日）
+- ✅ **日历任务列**（按 本日 / 本月 / 全部日期 / 自定义范围筛选，与日历视图自动联动）
+- ✅ **拖拽改期**（把任务列中的任务拖到日历日期上即可修改截止日期）
 
 ### 计划中
-- 🔄 任务搜索和高级过滤
-- 🔄 深色模式支持
 - 🔄 数据导入与导出
 - 🔄 云端存储与多端同步功能
 - 🔄 性能优化（大数据量虚拟滚动）
+- 🔄 番茄钟与专注统计
 
 ## 🛠️ 技术栈
 
@@ -171,19 +178,27 @@ dida-clone/
 │   │   │   ├── MainLayout.tsx
 │   │   │   ├── Sidebar.tsx
 │   │   │   └── Header.tsx
+│   │   ├── Calendar/       # 日历月视图
+│   │   ├── List/           # 清单右键菜单
+│   │   ├── Search/         # 搜索视图与结果项
 │   │   └── Task/           # 任务组件
 │   │       ├── TaskList.tsx
 │   │       ├── TaskItem.tsx
 │   │       └── TaskDetail.tsx
 │   ├── hooks/              # React Hooks
 │   │   ├── useTasks.ts
-│   │   └── useLists.ts
+│   │   ├── useLists.ts
+│   │   ├── useTags.ts
+│   │   └── useShortcuts.ts
 │   ├── services/           # API 服务层
 │   │   ├── task.ts
 │   │   ├── list.ts
 │   │   └── tag.ts
 │   ├── store/              # 状态管理
-│   │   └── useAppStore.ts
+│   │   ├── useAppStore.ts  # 全局 UI 状态
+│   │   ├── useThemeStore.ts# 主题（浅色/深色/跟随系统）
+│   │   ├── useViewStore.ts # 排序与筛选偏好（持久化）
+│   │   └── useAlertStore.ts
 │   ├── types/              # TypeScript 类型
 │   │   ├── task.ts
 │   │   ├── list.ts
@@ -206,9 +221,9 @@ dida-clone/
 - **task_tags** - 任务标签关联表
 
 数据库文件位于应用数据目录：
-- macOS: `~/Library/Application Support/com.akm.dida-clone/dida.db`
-- Windows: `%APPDATA%\com.akm.dida-clone\dida.db`
-- Linux: `~/.local/share/com.akm.dida-clone/dida.db`
+- macOS: `~/Library/Application Support/com.didaclone.app/dida.db`
+- Windows: `%APPDATA%\com.didaclone.app\dida.db`
+- Linux: `~/.local/share/com.didaclone.app/dida.db`
 
 ## 🎨 界面预览
 

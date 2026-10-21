@@ -279,7 +279,7 @@ export default function DatePicker({ selectedDate, reminder: initialReminder, re
 
     return (
         <div 
-            className="w-[280px] bg-white shadow-[0_10px_40px_rgba(0,0,0,0.3)] rounded-xl border border-[var(--dida-border-light)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-75 date-picker-container isolation-isolate opacity-100"
+            className="w-[280px] bg-[var(--dida-elevated)] shadow-[0_10px_40px_rgba(0,0,0,0.3)] rounded-xl border border-[var(--dida-border-light)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-75 date-picker-container isolation-isolate opacity-100"
             style={{ 
                 backfaceVisibility: 'hidden',
                 WebkitBackfaceVisibility: 'hidden',
@@ -294,7 +294,7 @@ export default function DatePicker({ selectedDate, reminder: initialReminder, re
                     type="button"
                     onClick={() => setActiveTab('date')}
                     className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
-                        activeTab === 'date' ? 'bg-white text-[var(--dida-text-primary)] shadow-sm' : 'text-[var(--dida-text-tertiary)] hover:text-[var(--dida-text-secondary)]'
+                        activeTab === 'date' ? 'bg-[var(--dida-elevated)] text-[var(--dida-text-primary)] shadow-sm' : 'text-[var(--dida-text-tertiary)] hover:text-[var(--dida-text-secondary)]'
                     }`}
                 >
                     日期
@@ -303,7 +303,7 @@ export default function DatePicker({ selectedDate, reminder: initialReminder, re
                     type="button"
                     onClick={() => setActiveTab('range')}
                     className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
-                        activeTab === 'range' ? 'bg-white text-[var(--dida-text-primary)] shadow-sm' : 'text-[var(--dida-text-tertiary)] hover:text-[var(--dida-text-secondary)]'
+                        activeTab === 'range' ? 'bg-[var(--dida-elevated)] text-[var(--dida-text-primary)] shadow-sm' : 'text-[var(--dida-text-tertiary)] hover:text-[var(--dida-text-secondary)]'
                     }`}
                 >
                     时间段
@@ -481,7 +481,7 @@ export default function DatePicker({ selectedDate, reminder: initialReminder, re
                     {showTimeList && (
                         <div 
                             ref={timeListRef}
-                            className="absolute bottom-full left-0 w-full mb-1 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)] rounded-xl border border-[var(--dida-border-light)] py-1 max-h-[240px] overflow-y-auto z-[60] animate-in slide-in-from-bottom-2 duration-200"
+                            className="absolute bottom-full left-0 w-full mb-1 bg-[var(--dida-elevated)] shadow-[0_-4px_20px_rgba(0,0,0,0.15)] rounded-xl border border-[var(--dida-border-light)] py-1 max-h-[240px] overflow-y-auto z-[60] animate-in slide-in-from-bottom-2 duration-200"
                         >
                             {timeOptions.map(({ hour, minute }) => {
                                 const isSelected = selectedTime.hour === hour && selectedTime.minute === minute && isTimeSet;
@@ -543,7 +543,7 @@ export default function DatePicker({ selectedDate, reminder: initialReminder, re
                     {showReminderList && (
                         <div 
                             ref={reminderListRef}
-                            className="absolute bottom-full left-0 w-full mb-1 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)] rounded-xl border border-[var(--dida-border-light)] py-1 z-[60] animate-in slide-in-from-bottom-2 duration-200"
+                            className="absolute bottom-full left-0 w-full mb-1 bg-[var(--dida-elevated)] shadow-[0_-4px_20px_rgba(0,0,0,0.15)] rounded-xl border border-[var(--dida-border-light)] py-1 z-[60] animate-in slide-in-from-bottom-2 duration-200"
                         >
                             <div className="max-h-[240px] overflow-y-auto">
                                 {reminderOptions.map((option) => {
@@ -611,7 +611,7 @@ export default function DatePicker({ selectedDate, reminder: initialReminder, re
                     {showRepeatList && (
                         <div 
                             ref={repeatListRef}
-                            className="absolute bottom-full left-0 w-full mb-1 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)] rounded-xl border border-[var(--dida-border-light)] py-1 z-[60] animate-in slide-in-from-bottom-2 duration-200"
+                            className="absolute bottom-full left-0 w-full mb-1 bg-[var(--dida-elevated)] shadow-[0_-4px_20px_rgba(0,0,0,0.15)] rounded-xl border border-[var(--dida-border-light)] py-1 z-[60] animate-in slide-in-from-bottom-2 duration-200"
                         >
                             <div className="max-h-[240px] overflow-y-auto">
                                 {REPEAT_OPTIONS.map((option) => {
@@ -639,7 +639,7 @@ export default function DatePicker({ selectedDate, reminder: initialReminder, re
                     {showCustomRepeat && (
                         <div 
                             ref={customRepeatRef}
-                            className="absolute bottom-full left-0 w-full mb-1 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)] rounded-xl border border-[var(--dida-border-light)] p-4 z-[70] animate-in slide-in-from-bottom-2 duration-200"
+                            className="absolute bottom-full left-0 w-full mb-1 bg-[var(--dida-elevated)] shadow-[0_-4px_20px_rgba(0,0,0,0.15)] rounded-xl border border-[var(--dida-border-light)] p-4 z-[70] animate-in slide-in-from-bottom-2 duration-200"
                         >
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">

@@ -214,7 +214,7 @@ impl TaskRepository {
         let mut stmt = conn.prepare(
             "SELECT id, title, description, list_id, completed, priority, 
              due_date, reminder, repeat_rule, parent_id, order_num, is_deleted, created_at, updated_at, completed_at
-             FROM tasks WHERE parent_id = ?1 AND is_deleted = 0 ORDER BY order_num ASC, created_at DESC"
+             FROM tasks WHERE parent_id = ?1 AND is_deleted = 0 ORDER BY order_num ASC, created_at ASC"
         )?;
 
         let tasks = stmt.query_map(params![parent_id], Self::map_row)?
@@ -320,6 +320,19 @@ impl TaskRepository {
         conn.execute("DELETE FROM tasks WHERE is_deleted = 1", [])?;
         
         Ok(())
+    }
+
+    /// 计算某个父任务下子任务的追加顺序号（末位 + 10）
+    pub fn next_child_order(db: &Database, parent_id: &str) -> Result<i32> {
+        let conn = db.conn.lock().unwrap();
+
+        let max_order: Option<i32> = conn.query_row(
+            "SELECT MAX(order_num) FROM tasks WHERE parent_id = ?1 AND is_deleted = 0",
+            params![parent_id],
+            |row| row.get(0),
+        )?;
+
+        Ok(max_order.map(|v| v + 10).unwrap_or(0))
     }
 
     pub fn update_orders(db: &Database, orders: Vec<(String, i32)>) -> Result<()> {

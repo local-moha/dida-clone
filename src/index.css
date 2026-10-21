@@ -15,6 +15,12 @@
     --dida-border-light: #F0F0F0;
     --dida-bg-hover: #F5F5F5;
 
+    /* 表面层级 */
+    --dida-surface: #FFFFFF;      /* 主内容区背景 */
+    --dida-elevated: #FFFFFF;     /* 浮层 / 卡片背景 */
+    --dida-bg-input: #F1F1F1;     /* 输入框背景 */
+    --dida-rail: #F0F0F0;         /* 最左侧导航条背景 */
+
     /* 优先级颜色 */
     --priority-high: #FF4D4F;
     --priority-high-hover: #FF7875;
@@ -30,22 +36,71 @@
     font-weight: 400;
     color-scheme: light;
     color: var(--dida-text-main);
-    background-color: #ffffff;
+    background-color: var(--dida-surface);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ---------- 深色模式 ---------- */
+  /* 组件统一使用 --dida-* 语义变量，切换主题只需覆盖这一层 */
+  .dark {
+    color-scheme: dark;
+
+    --dida-primary: #4DA6FF;
+    --dida-primary-rgb: 77, 166, 255;
+    --dida-primary-hover: #6FB6FF;
+    --dida-primary-active: #2E95F7;
+    --dida-primary-light: #16304A;
+    --dida-sidebar: #1A1A1A;
+    --dida-tag-default: #5B6472;
+    --dida-text-main: #E3E3E3;
+    --dida-text-secondary: #A0A0A0;
+    --dida-text-tertiary: #7C7C7C;
+    --dida-border-light: #383838;
+    --dida-bg-hover: #3A3A3A;
+
+    /* 表面层级 */
+    --dida-surface: #1F1F1F;
+    --dida-elevated: #2E2E2E;
+    --dida-bg-input: #2A2A2A;
+    --dida-rail: #141414;
+
+    /* 优先级颜色（暗色下略微提亮） */
+    --priority-high: #FF6B6B;
+    --priority-high-hover: #FF9492;
+    --priority-medium: #FFB84D;
+    --priority-medium-hover: #FFCB7A;
+    --priority-low: #69C0FF;
+    --priority-low-hover: #8AD4FF;
+    --priority-none: #5A5A5A;
+    --priority-none-hover: #757575;
+
+    color: var(--dida-text-main);
+    background-color: var(--dida-surface);
+  }
+
+  html {
+    height: 100%;
   }
 
   body {
     margin: 0;
     padding: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    /* 最小可用尺寸：导航条 + 侧边栏 + 任务列表 + 详情面板的最小宽度 */
+    min-width: 1024px;
+    min-height: 640px;
+    /* 窗口小于最小尺寸时出现滚动条，而不是把三栏布局挤变形 */
+    overflow: auto;
+    background-color: var(--dida-surface);
   }
 
   #root {
     width: 100%;
     height: 100%;
+    min-width: 1024px;
+    min-height: 640px;
   }
 
   * {
@@ -64,6 +119,14 @@
     user-select: none !important;
     -webkit-user-select: none !important;
     cursor: default;
+  }
+
+  /* 输入类元素需要保持可编辑、可选中、可选择文本 */
+  .select-none input,
+  .select-none textarea {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    cursor: text;
   }
 }
 
@@ -104,6 +167,50 @@
     content: '';
     @apply w-[8px] h-[5px] border-b-[1.5px] border-l-[1.5px] border-white -rotate-45 mt-[-1px];
   }
+}
+
+/* ---------- 浮层入场动画 ---------- */
+/* 项目未引入 tailwindcss-animate，这里用少量自定义动画支撑 animate-in 系列类名 */
+@keyframes dida-enter-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes dida-enter-zoom-95 {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes dida-enter-slide-right {
+  from { opacity: 0; transform: translateX(8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes dida-enter-slide-top {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes dida-enter-slide-bottom {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@layer utilities {
+  .animate-in {
+    animation: dida-enter-fade 150ms ease-out both;
+  }
+
+  .fade-in { animation-name: dida-enter-fade; }
+  .zoom-in-95 { animation-name: dida-enter-zoom-95; }
+  .slide-in-from-right-2 { animation-name: dida-enter-slide-right; }
+  .slide-in-from-top-2 { animation-name: dida-enter-slide-top; }
+  .slide-in-from-bottom-2 { animation-name: dida-enter-slide-bottom; }
+
+  .duration-75 { animation-duration: 75ms; }
+  .duration-100 { animation-duration: 100ms; }
+  .duration-150 { animation-duration: 150ms; }
+  .duration-200 { animation-duration: 200ms; }
 }
 
 /* 自定义滚动条 */

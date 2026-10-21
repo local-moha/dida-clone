@@ -10,28 +10,28 @@ Feature-based component organization for task management UI.
 
 ```
 components/
-├── Task/           # Task-related (8 files - largest)
+├── Task/           # Task-related (largest)
 │   ├── TaskList.tsx
 │   ├── TaskItem.tsx
 │   ├── TaskDetail.tsx
-│   ├── TaskForm.tsx
 │   ├── TaskContextMenu.tsx
 │   └── ...
 ├── Layout/         # Structural components
 │   ├── MainLayout.tsx
 │   ├── Sidebar.tsx
 │   └── Header.tsx
+├── Calendar/       # 月历视图
+├── List/           # 清单右键菜单（重命名 / 图标 / 颜色 / 删除）
+├── Search/         # 搜索视图与结果项
 ├── Common/         # Reusable primitives
-│   ├── Button.tsx
-│   ├── Modal.tsx
-│   ├── Input.tsx
+│   ├── DatePicker.tsx
+│   ├── AlertDialog.tsx
+│   ├── SettingsModal.tsx
 │   └── ...
-└── Tag/            # Tag management (2 files)
-    ├── TagManager.tsx
+└── Tag/            # Tag management
+    ├── AddTagModal.tsx
     └── TagContextMenu.tsx
 ```
-
-**Note:** No `List/` folder - List UI is embedded in `Sidebar.tsx`
 
 ## WHERE TO LOOK
 
@@ -41,6 +41,9 @@ components/
 | Layout change | `Layout/` | No |
 | Reusable UI | `Common/` | Maybe (check existing first) |
 | Tag feature | `Tag/` | Yes |
+| List (清单) UI | `List/` | Yes |
+| Search UI | `Search/` | Yes |
+| Calendar UI | `Calendar/` | Yes |
 
 ## CONVENTIONS
 
@@ -82,10 +85,6 @@ Extracted as separate components per entity:
 - Custom colors: `constants/colors.ts` → `tailwind.config.js` primary palette
 
 ## NOTES
-
-### Missing Components
-- No `List/` folder - list rendering is in `Sidebar.tsx`
-- Consider extracting if list logic grows
 
 ### Component Size
 - Keep components <200 lines

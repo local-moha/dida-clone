@@ -125,7 +125,7 @@ npm run preview
 - Tauri expects these ports - do not change
 
 ### Database Location
-macOS: `~/Library/Application Support/com.akm.dida-clone/dida.db`
+macOS: `~/Library/Application Support/com.didaclone.app/dida.db`
 
 ### Tech Debt
 - `useTasks.ts` (7KB) should be refactored - too large

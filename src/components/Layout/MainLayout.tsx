@@ -68,7 +68,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   }, [isResizing, resize, stopResizing]);
 
   return (
-    <div className="flex h-screen bg-white overflow-hidden">
+    <div className="flex h-full w-full min-w-[1024px] min-h-[640px] bg-[var(--dida-surface)] overflow-hidden">
       <NavRail />
       
       <div 
@@ -86,7 +86,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         </div>
       </div>
 
-      <main className="flex-1 flex flex-col overflow-hidden bg-white">
+      <main className="flex-1 min-w-0 flex flex-col overflow-hidden bg-[var(--dida-elevated)]">
         {children}
       </main>
     </div>

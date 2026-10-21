@@ -47,7 +47,7 @@ export default function TagContextMenu({
   return (
     <div
       ref={menuRef}
-      className="fixed z-[1000] w-48 bg-white rounded-xl shadow-2xl border border-[var(--dida-border-light)] py-1.5 animate-in fade-in zoom-in-95 duration-100"
+      className="fixed z-[1000] w-48 bg-[var(--dida-elevated)] rounded-xl shadow-2xl border border-[var(--dida-border-light)] py-1.5 animate-in fade-in zoom-in-95 duration-100"
       style={{ top: adjustedY, left: adjustedX }}
     >
       {menuItems.map((item, index) => (

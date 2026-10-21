@@ -304,7 +304,7 @@ dida-clone/                          # 项目根目录
 
 ### 开发模式
 ```bash
-cd /Users/akm/JieYueAI/dida-clone
+cd dida-clone
 npm run tauri dev
 ```
 
